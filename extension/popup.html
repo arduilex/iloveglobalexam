@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="dot" id="dot"></span>
+      <h1>GlobalExam Auto</h1>
+    </header>
+
+    <button id="toggle" class="main">▶ Démarrer</button>
+
+    <p class="status" id="status">Arrêté</p>
+
+    <div class="stats">
+      <div><strong id="answers">0</strong><span>réponses</span></div>
+      <div><strong id="correct">0</strong><span>justes</span></div>
+      <div><strong id="pages">0</strong><span>pages</span></div>
+    </div>
+
+    <div class="field">
+      <label for="correctRate">Bonnes réponses</label>
+      <div class="input"><input type="number" id="correctRate" min="0" max="100" step="5" /><span>%</span></div>
+    </div>
+
+    <div class="field">
+      <label for="nextDelay">Pause avant « suivant »</label>
+      <div class="input"><input type="number" id="nextDelay" min="0" step="10" /><span>s</span></div>
+    </div>
+
+    <label class="check"><input type="checkbox" id="showHud" /> Panneau flottant sur la page</label>
+
+    <p class="hint" id="hint"></p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

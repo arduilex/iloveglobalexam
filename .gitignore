@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Paquets générés pour le Chrome Web Store (reconstruits à la demande)
+*.zip
