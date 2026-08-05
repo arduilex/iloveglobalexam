@@ -70,6 +70,23 @@ En mode examen, ces champs ne sont pas envoyés au navigateur et aucun bouton de
 correction n'existe : l'extension retombe sur le tirage au hasard, et le statut
 l'indique.
 
+## Le pont vers le monde de la page
+
+Les scripts de contenu d'une extension Chrome vivent dans un **monde isolé** :
+ils partagent le DOM avec la page, mais **pas ses objets JavaScript**. Or la
+bonne réponse se trouve dans l'état des composants Vue, atteignable seulement
+via `#app.__vue_app__` — une propriété posée par le code du site, donc invisible
+depuis le monde isolé.
+
+`page-bridge.js` est déclaré avec `"world": "MAIN"` : il s'exécute dans le
+contexte de la page, lit `is_right_answer` pour chaque question, et transmet la
+table au script de contenu par `window.postMessage`. Réponse mesurée en **3 ms**.
+
+Si le pont ne répond pas — Chrome antérieur à la version 111, état Vue modifié —
+l'extension retombe sur l'ouverture puis la fermeture de la correction. Le statut
+affiche la source entre crochets, `[pont]` ou `[correction]`, ce qui permet de
+voir d'un coup d'œil quel chemin est actif.
+
 ## Comment ça marche
 
 - **Questions déjà répondues** : l'extension ne les retouche jamais, elle passe à la suivante.

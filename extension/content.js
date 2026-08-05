@@ -51,6 +51,7 @@
   let loopToken = 0;
   let lastNextClick = 0;
   let lastOutcome = null; // 'juste' | 'fausse' | 'hasard'
+  let lastSource = null; // 'pont' | 'correction' — d'où venait la bonne réponse
   let stats = { answers: 0, correct: 0, pages: 0, activity: null };
   let status = 'Arrêté';
 
@@ -160,6 +161,59 @@
     return [...map.values()];
   }
 
+  // ------------------------------------- chemin rapide : le pont vers la page --
+  /** Le script de contenu vit dans un monde isolé : il voit le DOM mais aucun
+   *  objet JavaScript de la page, donc pas l'état des composants Vue où se
+   *  trouve la bonne réponse. On la demande à `page-bridge.js`, injecté lui
+   *  dans le monde de la page. Sans réponse (pont absent, Chrome trop ancien,
+   *  état Vue différent), on retombe simplement sur l'ouverture de la
+   *  correction — le comportement d'origine, qui reste fonctionnel. */
+  let pontSeq = 0;
+
+  function demanderAuPont(timeout = 600) {
+    return new Promise((resolve) => {
+      const id = ++pontSeq;
+      let repondu = false;
+      const surMessage = (e) => {
+        const m = e.data;
+        if (e.source !== window || !m || m.__geAuto !== 'answers' || m.id !== id) return;
+        repondu = true;
+        window.removeEventListener('message', surMessage);
+        resolve(new Map(m.pairs));
+      };
+      window.addEventListener('message', surMessage);
+      window.postMessage({ __geAuto: 'ask', id }, '*');
+      setTimeout(() => {
+        if (repondu) return;
+        window.removeEventListener('message', surMessage);
+        resolve(new Map());
+      }, timeout);
+    });
+  }
+
+  let pontCache = { sig: null, map: new Map() };
+
+  async function tableDesReponses() {
+    const sig = signature();
+    if (pontCache.sig === sig) return pontCache.map;
+    const map = await demanderAuPont();
+    pontCache = { sig, map };
+    return map;
+  }
+
+  /** L'option juste du groupe d'après le pont, ou null s'il n'a rien à dire.
+   *  Les cases suivent le schéma `radio-{question}-{réponse}`. */
+  async function bonneReponseViaPont(group) {
+    const question = group[0].name;
+    const idReponse = (await tableDesReponses()).get(String(question));
+    if (idReponse == null) return null;
+    return (
+      group.find(
+        (r) => r.id === `radio-${question}-${idReponse}` || r.id.endsWith('-' + idReponse),
+      ) || null
+    );
+  }
+
   // ------------------------------------------------- lecture de la correction --
   async function waitFor(test, timeout) {
     const t0 = Date.now();
@@ -241,14 +295,24 @@
 
   async function answerGroup(group) {
     const ids = group.map((r) => r.id);
-    const correctId = await readCorrection(group);
+    let options = group;
 
-    // La correction re-rend le bloc : on récupère les éléments frais par id.
-    const frais = ids.every(Boolean)
-      ? ids.map((id) => document.getElementById(id)).filter(Boolean)
-      : group;
-    const options = frais.length ? frais : group;
-    const bonne = correctId ? options.find((r) => r.id === correctId) : null;
+    // 1) Chemin rapide : la page connaît déjà la bonne réponse, le pont nous la
+    //    donne sans le moindre clic.
+    let bonne = await bonneReponseViaPont(group);
+    lastSource = bonne ? 'pont' : null;
+
+    // 2) Repli : ouvrir puis refermer la correction. Le bloc étant re-rendu au
+    //    passage, les éléments doivent être repris par id.
+    if (!bonne) {
+      const correctId = await readCorrection(group);
+      if (correctId) lastSource = 'correction';
+      if (ids.every(Boolean)) {
+        const frais = ids.map((id) => document.getElementById(id)).filter(Boolean);
+        if (frais.length) options = frais;
+      }
+      bonne = correctId ? options.find((r) => r.id === correctId) : null;
+    }
 
     let choice;
     if (bonne) {

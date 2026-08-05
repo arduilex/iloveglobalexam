@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GlobalExam Auto-Answer",
-  "version": "2.2.0",
+  "version": "2.5.0",
   "description": "Répond aux QCM à votre place : coche la bonne réponse, pourcentage de réussite réglable. Pause entre les questions reglable.",
   "permissions": [
     "storage"
@@ -35,6 +35,18 @@
       ],
       "run_at": "document_idle",
       "all_frames": false
+    },
+    {
+      "matches": [
+        "https://*.global-exam.com/*",
+        "https://global-exam.com/*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN"
     }
   ]
 }
