@@ -3,3 +3,11 @@
 
 # Paquets générés pour le Chrome Web Store (reconstruits à la demande)
 *.zip
+
+# Fichiers de travail gardés en local, hors du dépôt public
+sitebrut.html                       # capture du site : contient des données de compte
+inspect-correction.js               # script de diagnostic ponctuel
+store-listing.md                    # textes de la fiche Chrome Web Store
+captureecran.png
+promotion.png
+globalexam-auto-promo-1400x560.png
