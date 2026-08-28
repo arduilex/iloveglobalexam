@@ -13,7 +13,7 @@
 }
 
 body {
-  width: 268px;
+  width: 288px;
   margin: 0;
   padding: 14px;
   background: var(--bg);
@@ -139,7 +139,8 @@ button.main.stop:hover {
   font-size: 11px;
 }
 
-input[type="number"] {
+input[type="number"],
+input[type="time"] {
   width: 62px;
   padding: 5px 7px;
   border: 1px solid var(--line);
@@ -148,6 +149,34 @@ input[type="number"] {
   color: var(--ink);
   font: inherit;
   font-size: 12px;
+}
+
+input[type="time"] {
+  width: 84px;
+}
+
+button.ghost {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--muted);
+  font: 600 12px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+button.ghost:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.warn {
+  margin: 6px 0 0;
+  color: #b0432b;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 input:focus {
@@ -189,7 +218,8 @@ input:focus {
   .stats strong {
     color: #d8c7ea;
   }
-  .hint {
+  .hint,
+  .warn {
     color: #f7a58f;
   }
 }
