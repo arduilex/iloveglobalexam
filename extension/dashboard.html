@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>GlobalExam Auto — tableau de bord</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <header>
+      <h1>GlobalExam Auto</h1>
+      <nav class="tabs">
+        <button class="tab on" data-tab="stats">Statistiques</button>
+        <button class="tab" data-tab="reglages">Réglages</button>
+        <button class="tab" data-tab="selecteurs">Sélecteurs</button>
+      </nav>
+    </header>
+
+    <!-- ------------------------------------------------------ statistiques -->
+    <section id="stats">
+      <div class="ranges">
+        <button class="range on" data-range="session">Session</button>
+        <button class="range" data-range="today">Aujourd’hui</button>
+        <button class="range" data-range="week">Cette semaine</button>
+        <button class="range" data-range="month">Ce mois</button>
+        <button class="range" data-range="all">Tout</button>
+        <span class="custom">
+          <label for="from">du</label><input type="date" id="from" />
+          <label for="to">au</label><input type="date" id="to" />
+        </span>
+      </div>
+
+      <p class="warn" id="warnDay" hidden></p>
+
+      <div class="tiles">
+        <div><strong id="tExos">0</strong><span>exercices</span></div>
+        <div><strong id="tOk">0</strong><span>bonnes réponses</span></div>
+        <div><strong id="tKo">0</strong><span>mauvaises</span></div>
+        <div><strong id="tRate">—</strong><span>réussite</span></div>
+        <div><strong id="tTime">0:00</strong><span>temps total</span></div>
+      </div>
+
+      <h2>Par jour</h2>
+      <div class="chart" id="chart"></div>
+
+      <h2>Par série</h2>
+      <table id="byType">
+        <thead>
+          <tr><th>Série</th><th>Exercices</th><th>Justes</th><th>Fausses</th><th>Réussite</th><th>Temps</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h2>Derniers exercices</h2>
+      <table id="recent">
+        <thead>
+          <tr><th>Date</th><th>Série</th><th>Score</th><th>Durée</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <p class="foot">
+        <button class="ghost" id="export">Exporter le journal (JSON)</button>
+        <button class="ghost danger" id="wipe">Vider le journal</button>
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------- réglages -->
+    <section id="reglages" hidden>
+      <h2>Rythme</h2>
+      <div class="field">
+        <label for="pageDelay">Attente moyenne par page</label>
+        <span><input type="number" id="pageDelay" min="1" step="1" /> s</span>
+      </div>
+      <div class="field">
+        <label for="pageJitter">Variation aléatoire (±)</label>
+        <span><input type="number" id="pageJitter" min="0" step="1" /> s</span>
+      </div>
+      <p class="hint" id="rangeHint"></p>
+
+      <div class="field">
+        <label for="correctRate">Bonnes réponses visées</label>
+        <span><input type="number" id="correctRate" min="0" max="100" step="5" /> %</span>
+      </div>
+
+      <h2>Session</h2>
+      <div class="field">
+        <label for="runFor">Durée de la session (H:MM, 0:00 = illimité)</label>
+        <span><input type="time" id="runFor" step="60" /></span>
+      </div>
+      <p class="warn" id="warnRun" hidden>
+        Plus de 5 h par jour se voit sur votre page Statistiques GlobalExam.
+      </p>
+
+      <label class="check"><input type="checkbox" id="chain" /> Enchaîner les exercices automatiquement</label>
+      <label class="check"><input type="checkbox" id="showHud" /> Panneau flottant sur la page</label>
+
+      <h2>Choisir une série</h2>
+      <p class="hint">
+        Partie 7(B) est la plus rentable : textes longs, 5 pages, une pause de 30 s
+        par page y reste crédible.
+      </p>
+      <div class="series" id="series"></div>
+    </section>
+
+    <!-- -------------------------------------------------------- sélecteurs -->
+    <section id="selecteurs" hidden>
+      <h2>Sélecteurs</h2>
+      <p class="hint">
+        Trois écritures par cible, essayées dans l’ordre : XPath relatif, puis CSS,
+        puis expression régulière sur le libellé. Un champ vide est ignoré.
+        « Tester » interroge l’onglet global-exam.com ouvert.
+      </p>
+      <div id="selEditor"></div>
+      <p class="foot">
+        <button id="selSave">Enregistrer</button>
+        <button class="ghost" id="selReset">Tout réinitialiser</button>
+        <span class="hint" id="selMsg"></span>
+      </p>
+    </section>
+
+    <script src="ge-selectors.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

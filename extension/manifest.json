@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GlobalExam Auto-Answer",
-  "version": "2.5.0",
-  "description": "Répond aux QCM à votre place : coche la bonne réponse, pourcentage de réussite réglable. Pause entre les questions reglable.",
+  "version": "3.0.0",
+  "description": "Enchaîne les entraînements : coche la bonne réponse, passe à l'exercice suivant, tient les statistiques. Rythme, durée de session et sélecteurs réglables.",
   "permissions": [
     "storage"
   ],
@@ -31,6 +31,7 @@
         "https://global-exam.com/*"
       ],
       "js": [
+        "ge-selectors.js",
         "content.js"
       ],
       "run_at": "document_idle",

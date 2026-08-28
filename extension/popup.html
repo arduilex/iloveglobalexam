@@ -17,7 +17,7 @@
     <div class="stats">
       <div><strong id="answers">0</strong><span>réponses</span></div>
       <div><strong id="correct">0</strong><span>justes</span></div>
-      <div><strong id="pages">0</strong><span>pages</span></div>
+      <div><strong id="exos">0</strong><span>exercices</span></div>
     </div>
 
     <div class="field">
@@ -26,11 +26,26 @@
     </div>
 
     <div class="field">
-      <label for="nextDelay">Pause avant « suivant »</label>
-      <div class="input"><input type="number" id="nextDelay" min="0" step="10" /><span>s</span></div>
+      <label for="pageDelay">Attente par page</label>
+      <div class="input"><input type="number" id="pageDelay" min="1" step="5" /><span>s</span></div>
     </div>
 
+    <div class="field">
+      <label for="pageJitter">Variation aléatoire</label>
+      <div class="input"><span>±</span><input type="number" id="pageJitter" min="0" step="5" /><span>s</span></div>
+    </div>
+
+    <div class="field">
+      <label for="runFor">Durée de session</label>
+      <div class="input"><input type="time" id="runFor" step="60" /></div>
+    </div>
+
+    <p class="warn" id="warnRun" hidden>Plus de 5 h par jour se voit sur votre page Statistiques.</p>
+
+    <label class="check"><input type="checkbox" id="chain" /> Enchaîner les exercices</label>
     <label class="check"><input type="checkbox" id="showHud" /> Panneau flottant sur la page</label>
+
+    <button id="dash" class="ghost">Tableau de bord</button>
 
     <p class="hint" id="hint"></p>
 

@@ -1,11 +1,17 @@
-/* GlobalExam Auto-Answer — popup */
+/* GlobalExam Auto — popup */
 
 const DEFAULTS = {
   running: false,
-  nextDelay: 1000, // stocké en millisecondes, saisi en secondes
+  pageDelay: 30000, // stocké en millisecondes, saisi en secondes
+  pageJitter: 20000,
   correctRate: 100,
+  runFor: 0, // ms, 0 = illimité
+  chain: true,
   showHud: true,
 };
+
+// Au-delà, la page /stats de GlobalExam montre un point manifestement aberrant.
+const SUSPECT_DAY = 5 * 3600 * 1000;
 
 const $ = (id) => document.getElementById(id);
 let cfg = { ...DEFAULTS };
@@ -15,21 +21,20 @@ function render() {
   $('dot').classList.toggle('on', on);
   $('toggle').textContent = on ? '■ Arrêter' : '▶ Démarrer';
   $('toggle').classList.toggle('stop', on);
-  $('nextDelay').value = Math.round(cfg.nextDelay) / 1000;
+  $('pageDelay').value = Math.round(cfg.pageDelay / 1000);
+  $('pageJitter').value = Math.round(cfg.pageJitter / 1000);
   $('correctRate').value = cfg.correctRate;
+  const min = Math.round(cfg.runFor / 60000);
+  $('runFor').value = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+  $('chain').checked = !!cfg.chain;
   $('showHud').checked = !!cfg.showHud;
+  $('warnRun').hidden = cfg.runFor <= SUSPECT_DAY;
 }
 
 function save(patch) {
   cfg = { ...cfg, ...patch };
   chrome.storage.local.set(patch);
   render();
-}
-
-function afficheStats(s) {
-  $('answers').textContent = s.answers ?? 0;
-  $('correct').textContent = s.correct ?? 0;
-  $('pages').textContent = s.pages ?? 0;
 }
 
 // --- état de l'onglet actif -------------------------------------------------
@@ -49,9 +54,14 @@ async function refresh() {
       return;
     }
     $('status').textContent = res.status;
-    afficheStats(res.stats);
+    $('answers').textContent = res.stats?.answers ?? 0;
+    $('correct').textContent = res.stats?.correct ?? 0;
+    $('exos').textContent = res.run?.exercises ?? 0;
     $('hint').textContent =
-      !res.nextFound && res.groups === 0 ? 'Aucune question ni bouton détecté sur cette page.' : '';
+      {
+        library: 'Choisis une série. Reading › Partie 7(B) — Textes multiples est la plus rentable.',
+        other: 'Page hors exercice : le runner renvoie vers la bibliothèque.',
+      }[res.kind] || '';
   });
 }
 
@@ -60,17 +70,27 @@ async function refresh() {
 // a changé, donc si les compteurs doivent repartir de zéro ou continuer.
 $('toggle').addEventListener('click', () => save({ running: !cfg.running }));
 
-$('nextDelay').addEventListener('change', (e) => {
-  const secondes = parseFloat(e.target.value);
-  save({ nextDelay: Number.isFinite(secondes) ? Math.max(0, Math.round(secondes * 1000)) : DEFAULTS.nextDelay });
+const num = (id, cle, mult, mini) =>
+  $(id).addEventListener('change', (e) => {
+    const v = parseFloat(e.target.value);
+    save({ [cle]: Number.isFinite(v) ? Math.max(mini, Math.round(v * mult)) : DEFAULTS[cle] });
+  });
+
+num('pageDelay', 'pageDelay', 1000, 1000);
+num('pageJitter', 'pageJitter', 1000, 0);
+num('correctRate', 'correctRate', 1, 0);
+
+$('runFor').addEventListener('change', (e) => {
+  const [h, m] = (e.target.value || '00:00').split(':').map(Number);
+  save({ runFor: ((h || 0) * 60 + (m || 0)) * 60000 });
 });
 
-$('correctRate').addEventListener('change', (e) => {
-  const pct = parseInt(e.target.value, 10);
-  save({ correctRate: Number.isFinite(pct) ? Math.min(100, Math.max(0, pct)) : DEFAULTS.correctRate });
-});
-
+$('chain').addEventListener('change', (e) => save({ chain: e.target.checked }));
 $('showHud').addEventListener('change', (e) => save({ showHud: e.target.checked }));
+$('dash').addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+  window.close();
+});
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
@@ -79,11 +99,17 @@ chrome.storage.onChanged.addListener((changes, area) => {
     render();
   }
   if ('status' in changes) $('status').textContent = changes.status.newValue;
-  if ('stats' in changes) afficheStats(changes.stats.newValue);
+  if ('stats' in changes) {
+    $('answers').textContent = changes.stats.newValue?.answers ?? 0;
+    $('correct').textContent = changes.stats.newValue?.correct ?? 0;
+  }
+  if ('run' in changes) $('exos').textContent = changes.run.newValue?.exercises ?? 0;
 });
 
 chrome.storage.local.get(null, (data) => {
   cfg = { ...DEFAULTS, ...data };
+  // Migration depuis la version 2.x : une pause fixe, en millisecondes.
+  if (data.pageDelay == null && data.nextDelay != null) cfg.pageDelay = data.nextDelay;
   render();
   refresh();
 });
